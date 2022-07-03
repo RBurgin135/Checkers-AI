@@ -32,9 +32,33 @@ public class TreeNode
     /**
      * getter for value
      */
+    public int GetValue()
+    {
+        return value;
+    }
+
+    /**
+     * getter for value
+     */
     public int SetValue()
     {
         return value;
+    }
+
+    /**
+     * getter for branches
+     */
+    public List<TreeNode> GetBranches()
+    {
+        return branches;
+    }
+
+    /**
+     * setter for branches
+     */
+    public void SetBranches(List<TreeNode> b)
+    {
+        branches = b;
     }
 
     /**

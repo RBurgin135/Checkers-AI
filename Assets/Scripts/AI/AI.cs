@@ -4,11 +4,10 @@ using UnityEngine;
 
 public class AI : MonoBehaviour
 {
-    [SerializeField] private int _depth;
+    [SerializeField] private int _recursionDepth;
     public static AI Instance;
     private int _width;
     private int _height;
-    private static int _recursionDepth = 5;
     
 
     private void Awake()
@@ -36,10 +35,10 @@ public class AI : MonoBehaviour
         */
         int[,] currentState = ConvertBoardState();
         TreeNode rootBehaviourNode = new TreeNode(currentState, EvaluationFunction(currentState));
-        BuildTree(_depth, rootBehaviourNode, isAiTurn);
+        BuildTree(_recursionDepth, rootBehaviourNode, isAiTurn);
 
         //minmax
-        //MinMax(rootBehaviourNode);
+        MinMax(rootBehaviourNode, _recursionDepth, isAiTurn);
 
         //next turn
         PlayerTurnManager.Instance.NextTurn();
@@ -48,12 +47,13 @@ public class AI : MonoBehaviour
     /**
      * recursive method for creating a node
      */
-    public void BuildTree(int currentDepth, TreeNode prevNode, bool isAiTurn)
+    private void BuildTree(int currentDepth, TreeNode prevNode, bool isAiTurn)
     {
         //end state
-        if (currentDepth >= _recursionDepth) return;
+        if (currentDepth == 0) return;
 
         //find next moves
+        prevNode.SetBranches(new List<TreeNode>());
         int[,] state = prevNode.GetState();
         for (int x = 0; x < _width; x++)
         {
@@ -62,7 +62,7 @@ public class AI : MonoBehaviour
                 //iterate through each tile
                 int t = state[x, y];
 
-                //continue if empty tile, or if one cannot control the piece in current turn 
+                //continue if empty tile, or if one cannot control the piece in current turn
                 if (t == 0) continue;
                 if (!isAiTurn && (t == 1 || t == 3) || isAiTurn && (t == 2 || t == 4)) continue;
 
@@ -71,9 +71,50 @@ public class AI : MonoBehaviour
                 {
                     //create new branches
                     TreeNode newBranch = new TreeNode(newState, EvaluationFunction(newState));
-                    BuildTree(currentDepth++, newBranch, !isAiTurn);
+                    prevNode.GetBranches().Add(newBranch);
+                    BuildTree(currentDepth - 1, newBranch, !isAiTurn);
                 }
             }
+        }
+    }
+
+    /**
+     * minmax algorithms to guide ai decisions
+     */
+    private TreeNode MinMax(TreeNode node, int depth, bool maximisingPlayer)
+    { 
+        //end state
+        if (depth == 0) return node;
+        if (node.GetBranches().Count == 0) return node;
+
+        //minmax
+        if (maximisingPlayer)
+        {
+            //max side
+            int maxEval = -int.MaxValue;
+            TreeNode maxNode = null;
+            foreach (TreeNode child in node.GetBranches())
+            {
+                TreeNode nodeBelow = MinMax(child, depth - 1, false);
+                int v = nodeBelow.GetValue();
+                maxEval = maxEval > v ? maxEval : v;
+                maxNode = maxEval > v ? maxNode : nodeBelow;
+            }
+            return maxNode;
+        }
+        else
+        {
+            //min side
+            int minEval = int.MaxValue;
+            TreeNode minNode = null;
+            foreach (TreeNode child in node.GetBranches())
+            {
+                TreeNode nodeBelow = MinMax(child, depth - 1, true);
+                int v = nodeBelow.GetValue();
+                minEval = minEval < v ? minEval : v;
+                minNode = minEval < v ? minNode : nodeBelow;
+            }
+            return minNode;
         }
     }
 
@@ -194,7 +235,7 @@ public class AI : MonoBehaviour
      * current evaluation function adds all remaining white pieces and negates 
      * remaining black pieces
      */
-    public int EvaluationFunction(int[,] state)
+    private int EvaluationFunction(int[,] state)
     {
         int value = 0;
         for (int x = 0; x < _width; x++)
@@ -205,7 +246,7 @@ public class AI : MonoBehaviour
                 {
                     value += 1;
                 }
-                else if (state[x, y] == 1 || state[x, y] == 3)
+                else if (state[x, y] == 2 || state[x, y] == 4)
                 {
                     value -= 1;
                 }
@@ -214,12 +255,3 @@ public class AI : MonoBehaviour
         return value;
     }
 }
-
-
-//take current board state x
-//take current player turn x
-
-//make tree containing all board states from player choices down to a given depth
-//evaluate the nodes using an evaluation function whilst building the tree
-
-//using minimax algorithm find the route the ai will take through the tree
