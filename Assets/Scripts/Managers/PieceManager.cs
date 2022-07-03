@@ -11,6 +11,7 @@ public class PieceManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+        _pieces = new List<Piece>();
     }
 
     /**
@@ -18,25 +19,35 @@ public class PieceManager : MonoBehaviour
      */
     public void GeneratePieces()
     {
-        for (int i = 0; i < 2; i++)
-            for (int x = 0; x < 8; x++)
-            {
-                //create new piece
-                int y = 0;
-                if (i == 1) y += 6; //shift up for other player
-                if (x % 2 == 0) y += 1; //shift up for second rank
-                Piece newPiece = Instantiate(_piecePrefab, new Vector3(x, y), Quaternion.identity);
-                string team = i == 0 ? "P1" : "P2";
-                newPiece.name = $"Piece {team} {x} {y}";
-                newPiece.Init(i == 1);
+        //cycle through the teams
+        for (int i = 0; i < 2; i++) 
+        {   //cycle through x
+            for (int x = 0; x < 8; x+=2)
+            {   //cycle through y
+                for (int y = 0; y < 3; y++)
+                {
+                    //shift location
+                    int xpos = x, ypos = y;
+                    if (i == 1)     ypos += 5;
+                    if (ypos % 2 != 0) xpos += 1;
 
-                //put piece on occupied tile
-                Tile t = GridManager.Instance.GetTiles()[new Vector2(x, y)];
-                t.SetOccupiedBy(newPiece);
-                newPiece.SetOccupying(t);
+                    //create new piece
+                    Piece newPiece = Instantiate(_piecePrefab, new Vector3(xpos, ypos), Quaternion.identity);
+                    newPiece.Init(i == 1);
+                    _pieces.Add(newPiece);
+
+                    //put piece on occupied tile
+                    Tile t = GridManager.Instance.GetTiles()[new Vector2(xpos, ypos)];
+                    t.SetOccupiedBy(newPiece);
+                    newPiece.SetOccupying(t);
+                }                
             }
+        }
+    }
 
-        //update game state
-        GameManager.Instance.UpdateGameState(GameState.playerTurn);
+    //getter for pieces
+    public List<Piece> GetPieces()
+    {
+        return _pieces;
     }
 }

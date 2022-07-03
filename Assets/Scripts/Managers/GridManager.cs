@@ -23,23 +23,38 @@ public class GridManager : MonoBehaviour
 
         //generates the grid
         _tiles = new Dictionary<Vector2, Tile>();
-        for (int x = 0; x < 8; x++)
-            for (int y = 0; y < 8; y++)
+        for (int x = 0; x < _width; x++)
+        {
+            for (int y = 0; y < _height; y++)
             {
                 Tile newTile = Instantiate(_tilePrefab, new Vector3(x, y), Quaternion.identity);
                 newTile.name = $"Tile {x} {y}";
                 bool isOffset = (x % 2 == 0 && y % 2 != 0) || (x % 2 != 0 && y % 2 == 0);
-                newTile.InitColour(isOffset); 
+                newTile.InitColour(isOffset);
                 _tiles.Add(new Vector2(x, y), newTile);
             }
-
-        //update game state
-        GameManager.Instance.UpdateGameState(GameState.generatePieces);
+        }
     }
 
     //get tile at coordinate (x, y)
     public Dictionary<Vector2, Tile> GetTiles()
     {
         return _tiles;
+    }
+
+    /**
+     * getter for height
+     */
+    public int GetHeight()
+    {
+        return _height;
+    }
+
+    /**
+     * getter for width
+     */
+    public int GetWidth()
+    {
+        return _width;
     }
 }

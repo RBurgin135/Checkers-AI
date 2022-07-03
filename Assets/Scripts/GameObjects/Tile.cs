@@ -7,7 +7,7 @@ public class Tile : MonoBehaviour
     [SerializeField] private Color _baseColour, _offsetColour, _validMoveColour;
     [SerializeField] private GameObject _highlight;
     [SerializeField] private SpriteRenderer _renderer;
-    private Piece _occupiedBy;
+    [SerializeField] private Piece _occupiedBy;
 
     public void InitColour(bool isOffset)
     {
@@ -45,7 +45,7 @@ public class Tile : MonoBehaviour
     //sets the tile to not show as valid
     public void StopShowValid()
     {
-        _renderer.color = _offsetColour;
+        _renderer.color = _baseColour;
     }
 
     //returns true if the tile is being highlighted
